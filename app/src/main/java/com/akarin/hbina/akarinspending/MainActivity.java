@@ -6,6 +6,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 
 import com.github.mikephil.charting.charts.PieChart;
@@ -33,6 +34,9 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        Toolbar myToolbar = findViewById(R.id.my_toolbar);
+        setSupportActionBar(myToolbar);
     }
 
     @Override
@@ -48,9 +52,24 @@ public class MainActivity extends AppCompatActivity {
             Log.d(this.toString(), "uid:" + uid);
         } else {
             Log.d(this.toString(), "User is null. Redirecting to the login page");
-            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-            startActivity(intent);
             finish();
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.log_out:
+                /*
+                Log out and exit.
+                 */
+                return true;
+
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+
         }
     }
 
