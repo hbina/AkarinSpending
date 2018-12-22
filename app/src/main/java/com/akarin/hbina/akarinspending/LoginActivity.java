@@ -14,6 +14,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -31,9 +32,6 @@ public class LoginActivity extends AppCompatActivity {
         mPasswordField = findViewById(R.id.field_password);
 
         mAuth = FirebaseAuth.getInstance();
-        if (mAuth.getCurrentUser() != null) {
-            goToMainActivity();
-        }
 
 
         Button signInButton = findViewById(R.id.email_sign_in_button);
@@ -50,6 +48,18 @@ public class LoginActivity extends AppCompatActivity {
                 signIn(mEmailField.getText().toString(), mPasswordField.getText().toString());
             }
         });
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Check if user is signed in (non-null) and update UI accordingly.
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            goToMainActivity();
+        } else {
+            Log.d(this.toString(), "No user is logged in");
+        }
     }
 
     private void createAccount(String email, String password) {
@@ -119,7 +129,7 @@ public class LoginActivity extends AppCompatActivity {
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_TASK_ON_HOME);
         startActivity(intent);
-        LoginActivity.this.finish();
+        finish();
     }
 }
 

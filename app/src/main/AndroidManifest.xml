@@ -19,7 +19,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".SubmitNewItem" />
+        <activity
+            android:name=".SubmitNewItem"
+            android:parentActivityName="com.akarin.hbina.akarinspending.MainActivity" />
     </application>
 
 </manifest>
