@@ -7,4 +7,11 @@
     <string name="sign_in">Sign In</string>
     <string name="log_out">Log out</string>
     <string name="submit">submit</string>
+    <string name="item_prompt">Choose item type</string>
+    <string-array name="item_arrays">
+        <item>Food</item>
+        <item>Grocery</item>
+        <item>Rent</item>
+        <item>Others</item>
+    </string-array>
 </resources>
