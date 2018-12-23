@@ -22,12 +22,16 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
 
     private DatabaseReference mDatabase;
     private EditText itemPriceText;
+    private String itemName = "Others";
     private FirebaseUser user;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_submit_new_item);
+
+        itemPriceText = findViewById(R.id.item_price);
+
         user = FirebaseAuth.getInstance().getCurrentUser();
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
@@ -43,7 +47,7 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
         submitBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                addItem(user.getUid(), "dummy", 123.45);
+                addItem(user.getUid(), itemName, Double.valueOf(itemPriceText.getText().toString()));
                 finish();
             }
         });
@@ -67,6 +71,7 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
         Log.d(this.toString(), (String) adapterView.getItemAtPosition(i));
+        itemName = (String) adapterView.getItemAtPosition(i);
     }
 
     @Override
