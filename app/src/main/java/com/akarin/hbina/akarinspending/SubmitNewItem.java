@@ -17,12 +17,13 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
+    private static String itemType = "Others";
     private DatabaseReference mDatabase;
     private EditText itemPriceText;
-    private String itemName = "Others";
     private FirebaseUser user;
 
     @Override
@@ -31,7 +32,6 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
         setContentView(R.layout.activity_submit_new_item);
 
         itemPriceText = findViewById(R.id.item_price);
-
         user = FirebaseAuth.getInstance().getCurrentUser();
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
@@ -47,8 +47,12 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
         submitBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                addItem(user.getUid(), itemName, Double.valueOf(itemPriceText.getText().toString()));
-                finish();
+                if (checkItemType(itemType) && checkItemPrice(itemPriceText.getText().toString())) {
+                    addItem(user.getUid(), itemType, Double.valueOf(itemPriceText.getText().toString()));
+                    finish();
+                } else {
+                    Log.d(this.toString(), "Skipping adding item to database because check failure.");
+                }
             }
         });
 
@@ -56,7 +60,59 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
         spinner.setOnItemSelectedListener(this);
     }
 
+    private boolean checkItemType(String itemType) {
+        return itemType != null && itemType.length() >= 1;
+    }
+
+    private boolean checkItemPrice(String itemPrice) {
+        /*
+        Regular expression taken from https://docs.oracle.com/javase/8/docs/api/java/lang/Double.html#valueOf-java.lang.String-
+         */
+        final String Digits = "(\\p{Digit}+)";
+        final String HexDigits = "(\\p{XDigit}+)";
+// an exponent is 'e' or 'E' followed by an optionally
+// signed decimal integer.
+        final String Exp = "[eE][+-]?" + Digits;
+        final String fpRegex =
+                ("[\\x00-\\x20]*" + // Optional leading "whitespace"
+                        "[+-]?(" +         // Optional sign character
+                        "NaN|" +           // "NaN" string
+                        "Infinity|" +      // "Infinity" string
+
+                        // A decimal floating-point string representing a finite positive
+                        // number without a leading sign has at most five basic pieces:
+                        // Digits . Digits ExponentPart FloatTypeSuffix
+                        //
+                        // Since this method allows integer-only strings as input
+                        // in addition to strings of floating-point literals, the
+                        // two sub-patterns below are simplifications of the grammar
+                        // productions from the Java Language Specification, 2nd
+                        // edition, section 3.10.2.
+
+                        // Digits ._opt Digits_opt ExponentPart_opt FloatTypeSuffix_opt
+                        "(((" + Digits + "(\\.)?(" + Digits + "?)(" + Exp + ")?)|" +
+
+                        // . Digits ExponentPart_opt FloatTypeSuffix_opt
+                        "(\\.(" + Digits + ")(" + Exp + ")?)|" +
+
+                        // Hexadecimal strings
+                        "((" +
+                        // 0[xX] HexDigits ._opt BinaryExponent FloatTypeSuffix_opt
+                        "(0[xX]" + HexDigits + "(\\.)?)|" +
+
+                        // 0[xX] HexDigits_opt . HexDigits BinaryExponent FloatTypeSuffix_opt
+                        "(0[xX]" + HexDigits + "?(\\.)" + HexDigits + ")" +
+
+                        ")[pP][+-]?" + Digits + "))" +
+                        "[fFdD]?))" +
+                        "[\\x00-\\x20]*");// Optional trailing "whitespace"
+
+
+        return Pattern.matches(fpRegex, itemPrice);
+    }
+
     private void addItem(String userId, String itemName, double itemPrice) {
+        Log.d(this.toString(), "Adding item userId:" + userId + " itemType:" + itemName + " itemPrice:" + itemPrice);
         Item user = new Item(itemName, itemPrice);
 
         String key = mDatabase.child("users").child(userId).push().getKey();
@@ -70,8 +126,7 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
 
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-        Log.d(this.toString(), (String) adapterView.getItemAtPosition(i));
-        itemName = (String) adapterView.getItemAtPosition(i);
+        itemType = (String) adapterView.getItemAtPosition(i);
     }
 
     @Override

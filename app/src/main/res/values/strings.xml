@@ -9,9 +9,9 @@
     <string name="submit">submit</string>
     <string name="item_prompt">Choose item type</string>
     <string-array name="item_arrays">
+        <item>Others</item>
         <item>Food</item>
         <item>Grocery</item>
         <item>Rent</item>
-        <item>Others</item>
     </string-array>
 </resources>
