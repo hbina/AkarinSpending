@@ -8,12 +8,14 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.akarin.hbina.akarinspending.Models.Item;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +23,7 @@ import java.util.regex.Pattern;
 
 public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
-    private static String itemType = "Others";
+    private static String itemType;
     private DatabaseReference mDatabase;
     private EditText itemPriceText;
     private FirebaseUser user;
@@ -48,10 +50,14 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
             @Override
             public void onClick(View view) {
                 if (checkItemType(itemType) && checkItemPrice(itemPriceText.getText().toString())) {
-                    addItem(user.getUid(), itemType, Double.valueOf(itemPriceText.getText().toString()));
-                    finish();
+                    if ((Double.valueOf(itemPriceText.getText().toString()) > 0.0f)) {
+                        addItem(user.getUid(), itemType, Double.valueOf(itemPriceText.getText().toString()));
+                        finish();
+                    } else {
+                        Toast.makeText(getApplicationContext(), R.string.warning_item_is_free, Toast.LENGTH_SHORT).show();
+                    }
                 } else {
-                    Log.d(this.toString(), "Skipping adding item to database because check failure.");
+                    Toast.makeText(getApplicationContext(), R.string.warning_input_check_failed, Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -118,6 +124,7 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
         String key = mDatabase.child("users").child(userId).push().getKey();
 
         Map<String, Object> newItem = user.toMap();
+        newItem.put("time", ServerValue.TIMESTAMP);
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/users/" + userId + "/" + key, newItem);
 
@@ -131,6 +138,6 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
 
     @Override
     public void onNothingSelected(AdapterView<?> adapterView) {
-
+        Log.d(this.toString(), "Nothing is selected???" + adapterView.toString());
     }
 }

@@ -8,6 +8,8 @@
     <string name="log_out">Log out</string>
     <string name="submit">submit</string>
     <string name="item_prompt">Choose item type</string>
+    <string name="warning_item_is_free">This item is free!</string>
+    <string name="warning_input_check_failed">Please enter a correct value</string>
     <string-array name="item_arrays">
         <item>Others</item>
         <item>Food</item>

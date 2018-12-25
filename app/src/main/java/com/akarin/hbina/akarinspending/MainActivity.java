@@ -12,12 +12,14 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.github.mikephil.charting.charts.PieChart;
+import com.google.firebase.FirebaseError;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
@@ -62,11 +64,7 @@ public class MainActivity extends AppCompatActivity {
             String email = user.getEmail();
             boolean emailVerified = user.isEmailVerified();
             String uid = user.getUid();
-            Log.d(this.toString(), "email:" + email);
-            Log.d(this.toString(), "emailVerified:" + emailVerified);
-            Log.d(this.toString(), "uid:" + uid);
         } else {
-            Log.d(this.toString(), "User is null. Redirecting to the login page");
             finish();
         }
 
@@ -74,12 +72,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 String value = dataSnapshot.getValue(String.class);
-                Log.d(this.toString(), "Value is: " + value);
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                // Failed to read value
                 Log.e(this.toString(), "Failed to read value.", error.toException());
             }
         });
@@ -105,5 +101,26 @@ public class MainActivity extends AppCompatActivity {
 
     private void preparePieChart() {
         PieChart chart = findViewById(R.id.chart);
+    }
+
+    public void getMessages(double endTime) {
+        DatabaseReference messagesRef = FirebaseDatabase.getInstance().getReference("messages");
+
+        // Create a query to limit results where endTime is greater than the current time.
+        Query messagesQuery = messagesRef.orderByChild("endTime").startAt(endTime);
+
+        messagesRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot message : dataSnapshot.getChildren()) {
+                    // ...
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 }
