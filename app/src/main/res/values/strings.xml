@@ -10,6 +10,7 @@
     <string name="item_prompt">Choose item type</string>
     <string name="warning_item_is_free">This item is free!</string>
     <string name="warning_input_check_failed">Please enter a correct value</string>
+    <string name="warning_firebase_request_cancelled">Request to get items have been cancelled</string>
     <string-array name="item_arrays">
         <item>Others</item>
         <item>Food</item>

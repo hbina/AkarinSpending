@@ -10,13 +10,14 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.akarin.hbina.akarinspending.Models.Item;
+import com.akarin.hbina.akarinspending.Models.AkarinItem;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -24,7 +25,6 @@ import java.util.regex.Pattern;
 public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
     private static String itemType;
-    private DatabaseReference mDatabase;
     private EditText itemPriceText;
     private FirebaseUser user;
 
@@ -35,7 +35,6 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
 
         itemPriceText = findViewById(R.id.item_price);
         user = FirebaseAuth.getInstance().getCurrentUser();
-        mDatabase = FirebaseDatabase.getInstance().getReference();
 
         Button cancelBtn = findViewById(R.id.btn_cancel);
         cancelBtn.setOnClickListener(new View.OnClickListener() {
@@ -118,15 +117,15 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
     }
 
     private void addItem(String userId, String itemName, double itemPrice) {
-        Log.d(this.toString(), "Adding item userId:" + userId + " itemType:" + itemName + " itemPrice:" + itemPrice);
-        Item user = new Item(itemName, itemPrice);
+        AkarinItem user = new AkarinItem(itemName, itemPrice, new Date().getTime());
 
-        String key = mDatabase.child("users").child(userId).push().getKey();
+        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+        String key = mDatabase.child("users").child(userId).child("items").push().getKey();
 
         Map<String, Object> newItem = user.toMap();
-        newItem.put("time", ServerValue.TIMESTAMP);
+        newItem.put("itemTime", ServerValue.TIMESTAMP);
         Map<String, Object> childUpdates = new HashMap<>();
-        childUpdates.put("/users/" + userId + "/" + key, newItem);
+        childUpdates.put("/users/" + userId + "/items/" + key, newItem);
 
         mDatabase.updateChildren(childUpdates);
     }
