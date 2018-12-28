@@ -1,18 +1,36 @@
 package com.akarin.hbina.akarinspending;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
+import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.akarin.hbina.akarinspending.Models.AkarinItem;
+import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
+import com.github.mikephil.charting.formatter.PercentFormatter;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
+import com.github.mikephil.charting.utils.ColorTemplate;
+import com.github.mikephil.charting.utils.MPPointF;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -22,13 +40,16 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
-import java.nio.DoubleBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OnChartValueSelectedListener {
     private static final Long ONE_MONTH_IN_SECONDS = 2592000L;
+    private static Integer counter = 0;
+    private static HashMap<String, Integer> hash = new HashMap<>();
+    private static ArrayList<NonFinalPair<String, Float>> arry = new ArrayList<>();
     private FirebaseUser user;
-
+    private PieChart chart;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,8 +82,6 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
-            String email = user.getEmail();
-            boolean emailVerified = user.isEmailVerified();
             String userId = user.getUid();
             populatePieChart(userId);
         } else {
@@ -93,7 +112,51 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void preparePieChart() {
-        PieChart chart = findViewById(R.id.chart);
+
+        chart = findViewById(R.id.chart);
+
+        chart.setUsePercentValues(true);
+        chart.getDescription().setEnabled(false);
+        chart.setExtraOffsets(5, 10, 5, 5);
+        chart.setDragDecelerationFrictionCoef(0.95f);
+        chart.setCenterText(generateCenterSpannableText());
+        chart.setDrawHoleEnabled(true);
+        chart.setHoleColor(Color.WHITE);
+        chart.setTransparentCircleColor(Color.WHITE);
+        chart.setTransparentCircleAlpha(110);
+        chart.setHoleRadius(58f);
+        chart.setTransparentCircleRadius(61f);
+        chart.setDrawCenterText(true);
+        chart.setRotationAngle(0);
+        chart.setRotationEnabled(true);
+        chart.setHighlightPerTapEnabled(true);
+        chart.setOnChartValueSelectedListener(this);
+
+        chart.animateY(1400, Easing.EaseInOutQuad);
+        Legend l = chart.getLegend();
+        l.setVerticalAlignment(Legend.LegendVerticalAlignment.TOP);
+        l.setHorizontalAlignment(Legend.LegendHorizontalAlignment.RIGHT);
+        l.setOrientation(Legend.LegendOrientation.VERTICAL);
+        l.setDrawInside(false);
+        l.setXEntrySpace(7f);
+        l.setYEntrySpace(0f);
+        l.setYOffset(0f);
+
+        // entry label styling
+        chart.setEntryLabelColor(Color.WHITE);
+        chart.setEntryLabelTextSize(12f);
+    }
+
+    private SpannableString generateCenterSpannableText() {
+
+        SpannableString s = new SpannableString("Your expenditure\nof the past 30 days");
+        s.setSpan(new RelativeSizeSpan(1.7f), 0, 14, 0);
+        s.setSpan(new StyleSpan(Typeface.NORMAL), 14, s.length() - 15, 0);
+        s.setSpan(new ForegroundColorSpan(Color.GRAY), 14, s.length() - 15, 0);
+        s.setSpan(new RelativeSizeSpan(.8f), 14, s.length() - 15, 0);
+        s.setSpan(new StyleSpan(Typeface.ITALIC), s.length() - 14, s.length(), 0);
+        s.setSpan(new ForegroundColorSpan(ColorTemplate.getHoloBlue()), s.length() - 14, s.length(), 0);
+        return s;
     }
 
     private void populatePieChart(String userId) {
@@ -103,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
             ref.child("current_timestamp").setValue(ServerValue.TIMESTAMP, new DatabaseReference.CompletionListener() {
                 @Override
                 public void onComplete(final DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
-                    databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                    databaseReference.addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             Long server_timestamp = dataSnapshot.getValue(Long.class);
@@ -116,12 +179,21 @@ public class MainActivity extends AppCompatActivity {
                                         for (DataSnapshot child : dataSnapshot.getChildren()) {
                                             HashMap<String, Object> itemMap = (HashMap<String, Object>) child.getValue();
                                             if (itemMap != null) {
-                                                AkarinItem item = new AkarinItem((String) itemMap.get("itemType"), Double.valueOf(String.valueOf(itemMap.get("itemPrice"))), (Long) itemMap.get("itemTime"));
+                                                AkarinItem item = new AkarinItem((String) itemMap.get("itemType"), Float.valueOf(String.valueOf(itemMap.get("itemPrice"))), (Long) itemMap.get("itemTime"));
                                                 Log.d(this.toString(), "item:" + item.toString());
+                                                if (hash.containsKey(item.getItemType())) {
+                                                    Float currentValue = arry.get(hash.get(item.getItemType())).second;
+                                                    arry.set(hash.get(item.getItemType()), new NonFinalPair<>(item.getItemType(), currentValue + item.getItemPrice()));
+                                                } else {
+                                                    Log.d(this.toString(), item.getItemType() + " is a new item type");
+                                                    hash.put(item.getItemType(), counter++);
+                                                    arry.add(new NonFinalPair<String, Float>(item.getItemType(), item.getItemPrice()));
+                                                }
                                             } else {
                                                 Log.e(this.toString(), "item is null");
                                             }
                                         }
+                                        drawPie();
                                     }
 
                                     @Override
@@ -147,5 +219,45 @@ public class MainActivity extends AppCompatActivity {
             Log.d(this.toString(), "User is null");
             goToLoginActivity();
         }
+    }
+
+    private void drawPie() {
+        ArrayList<PieEntry> entries = new ArrayList<>();
+        for (int i = 0; i < arry.size(); i++) {
+            entries.add(new PieEntry(arry.get(i).second, arry.get(i).first));
+        }
+
+        PieDataSet dataSet = new PieDataSet(entries, "Expenditure");
+
+        dataSet.setDrawIcons(false);
+
+        dataSet.setSliceSpace(3f);
+        dataSet.setIconsOffset(new MPPointF(0, 40));
+        dataSet.setSelectionShift(5f);
+
+        PieData data = new PieData(dataSet);
+        data.setValueFormatter(new PercentFormatter());
+        data.setValueTextSize(11f);
+        data.setValueTextColor(Color.WHITE);
+
+        chart.setData(data);
+        chart.highlightValues(null);
+        chart.invalidate();
+    }
+
+    @Override
+    public void onValueSelected(Entry entry, Highlight highlight) {
+        if (entry == null)
+            return;
+        Toast.makeText(
+                getApplicationContext(),
+                "Value: " + entry.getY() + ", index: " + highlight.getX() + ", DataSet index: " + highlight.getDataSetIndex(),
+                Toast.LENGTH_SHORT).show();
+
+    }
+
+    @Override
+    public void onNothingSelected() {
+        Log.d(this.toString(), "Nothing is selected...");
     }
 }

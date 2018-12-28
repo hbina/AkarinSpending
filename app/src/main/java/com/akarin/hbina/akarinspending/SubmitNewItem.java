@@ -50,7 +50,7 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
             public void onClick(View view) {
                 if (checkItemType(itemType) && checkItemPrice(itemPriceText.getText().toString())) {
                     if ((Double.valueOf(itemPriceText.getText().toString()) > 0.0f)) {
-                        addItem(user.getUid(), itemType, Double.valueOf(itemPriceText.getText().toString()));
+                        addItem(user.getUid(), itemType, Float.valueOf(itemPriceText.getText().toString()));
                         finish();
                     } else {
                         Toast.makeText(getApplicationContext(), R.string.warning_item_is_free, Toast.LENGTH_SHORT).show();
@@ -116,7 +116,7 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
         return Pattern.matches(fpRegex, itemPrice);
     }
 
-    private void addItem(String userId, String itemName, double itemPrice) {
+    private void addItem(String userId, String itemName, Float itemPrice) {
         AkarinItem user = new AkarinItem(itemName, itemPrice, new Date().getTime());
 
         DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();

@@ -6,14 +6,14 @@ import java.util.Map;
 public class AkarinItem {
 
     private String itemType;
-    private double itemPrice;
+    private Float itemPrice;
     private Long itemTime;
 
     public AkarinItem() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
 
-    public AkarinItem(String itemType, double itemPrice, Long itemTime) {
+    public AkarinItem(String itemType, Float itemPrice, Long itemTime) {
         this.itemType = itemType;
         this.itemPrice = itemPrice;
         this.itemTime = itemTime;
@@ -27,11 +27,11 @@ public class AkarinItem {
         this.itemType = itemType;
     }
 
-    public double getItemPrice() {
+    public Float getItemPrice() {
         return itemPrice;
     }
 
-    public void setItemPrice(double itemPrice) {
+    public void setItemPrice(Float itemPrice) {
         this.itemPrice = itemPrice;
     }
 
