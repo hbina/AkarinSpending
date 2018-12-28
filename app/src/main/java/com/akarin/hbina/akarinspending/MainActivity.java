@@ -2,16 +2,12 @@ package com.akarin.hbina.akarinspending;
 
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.SpannableString;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.RelativeSizeSpan;
-import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,7 +25,6 @@ import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.PercentFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
-import com.github.mikephil.charting.utils.ColorTemplate;
 import com.github.mikephil.charting.utils.MPPointF;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -46,8 +41,6 @@ import java.util.HashMap;
 public class MainActivity extends AppCompatActivity implements OnChartValueSelectedListener {
     private static final Long ONE_MONTH_IN_SECONDS = 2592000L;
     private static Integer counter = 0;
-    private static HashMap<String, Integer> hash = new HashMap<>();
-    private static ArrayList<NonFinalPair<String, Float>> arry = new ArrayList<>();
     private FirebaseUser user;
     private PieChart chart;
 
@@ -148,15 +141,7 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
     }
 
     private SpannableString generateCenterSpannableText() {
-
-        SpannableString s = new SpannableString("Your expenditure\nof the past 30 days");
-        s.setSpan(new RelativeSizeSpan(1.7f), 0, 14, 0);
-        s.setSpan(new StyleSpan(Typeface.NORMAL), 14, s.length() - 15, 0);
-        s.setSpan(new ForegroundColorSpan(Color.GRAY), 14, s.length() - 15, 0);
-        s.setSpan(new RelativeSizeSpan(.8f), 14, s.length() - 15, 0);
-        s.setSpan(new StyleSpan(Typeface.ITALIC), s.length() - 14, s.length(), 0);
-        s.setSpan(new ForegroundColorSpan(ColorTemplate.getHoloBlue()), s.length() - 14, s.length(), 0);
-        return s;
+        return new SpannableString("Your expenditure\nof the past 30 days");
     }
 
     private void populatePieChart(String userId) {
@@ -166,7 +151,7 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
             ref.child("current_timestamp").setValue(ServerValue.TIMESTAMP, new DatabaseReference.CompletionListener() {
                 @Override
                 public void onComplete(final DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
-                    databaseReference.addValueEventListener(new ValueEventListener() {
+                    databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             Long server_timestamp = dataSnapshot.getValue(Long.class);
@@ -176,6 +161,8 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
                                     @Override
                                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                         Log.d(this.toString(), "There are " + dataSnapshot.getChildrenCount() + " items");
+                                        HashMap<String, Integer> hash = new HashMap<>();
+                                        ArrayList<NonFinalPair<String, Float>> arry = new ArrayList<>();
                                         for (DataSnapshot child : dataSnapshot.getChildren()) {
                                             HashMap<String, Object> itemMap = (HashMap<String, Object>) child.getValue();
                                             if (itemMap != null) {
@@ -187,13 +174,13 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
                                                 } else {
                                                     Log.d(this.toString(), item.getItemType() + " is a new item type");
                                                     hash.put(item.getItemType(), counter++);
-                                                    arry.add(new NonFinalPair<String, Float>(item.getItemType(), item.getItemPrice()));
+                                                    arry.add(new NonFinalPair<>(item.getItemType(), item.getItemPrice()));
                                                 }
                                             } else {
                                                 Log.e(this.toString(), "item is null");
                                             }
                                         }
-                                        drawPie();
+                                        drawPie(arry);
                                     }
 
                                     @Override
@@ -221,7 +208,7 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         }
     }
 
-    private void drawPie() {
+    private void drawPie(ArrayList<NonFinalPair<String, Float>> arry) {
         ArrayList<PieEntry> entries = new ArrayList<>();
         for (int i = 0; i < arry.size(); i++) {
             entries.add(new PieEntry(arry.get(i).second, arry.get(i).first));
