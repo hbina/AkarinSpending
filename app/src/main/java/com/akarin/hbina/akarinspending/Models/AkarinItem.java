@@ -3,10 +3,7 @@ package com.akarin.hbina.akarinspending.Models;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AkarinItem {
-
-    private String itemType;
-    private Float itemPrice;
+public class AkarinItem extends AkarinValue {
     private Long itemTime;
 
     public AkarinItem() {
@@ -14,31 +11,13 @@ public class AkarinItem {
     }
 
     public AkarinItem(String itemType, Float itemPrice, Long itemTime) {
-        this.itemType = itemType;
-        this.itemPrice = itemPrice;
+        super(itemType, itemPrice);
         this.itemTime = itemTime;
     }
 
     public AkarinItem(String itemType, Float itemPrice) {
-        this.itemType = itemType;
-        this.itemPrice = itemPrice;
+        super(itemType, itemPrice);
         this.itemTime = System.currentTimeMillis() / 1000L;
-    }
-
-    public String getItemType() {
-        return itemType;
-    }
-
-    public void setItemType(String itemType) {
-        this.itemType = itemType;
-    }
-
-    public Float getItemPrice() {
-        return itemPrice;
-    }
-
-    public void setItemPrice(Float itemPrice) {
-        this.itemPrice = itemPrice;
     }
 
     public Long getItemTime() {
@@ -60,6 +39,6 @@ public class AkarinItem {
     }
 
     public String toString() {
-        return "AkarinItem itemType:" + itemType + " itemPrice:" + itemPrice + " itemTime:" + itemTime;
+        return "AkarinItem super:" + super.toString() + " itemTime:" + itemTime;
     }
 }

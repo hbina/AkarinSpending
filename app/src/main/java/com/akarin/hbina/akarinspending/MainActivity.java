@@ -15,7 +15,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.akarin.hbina.akarinspending.Models.AkarinItem;
-import com.akarin.hbina.akarinspending.Util.NonFinalPair;
+import com.akarin.hbina.akarinspending.Models.AkarinValue;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Legend;
@@ -41,8 +41,8 @@ import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity implements OnChartValueSelectedListener {
     private static final Long ONE_MONTH_IN_SECONDS = 2592000L;
-    private static HashMap<String, Integer> hash = new HashMap<>();
-    private static ArrayList<NonFinalPair<String, Float>> arry = new ArrayList<>();
+    private static final String[] ARRAY_ITEM_TYPES = new String[]{"Others", "Food", "Grocery", "Rent"};
+    private static HashMap<String, AkarinValue> hash = new HashMap<>();
     private static Integer counter = 0;
     private FirebaseUser user;
     private PieChart chart;
@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        initialize();
         preparePieChart();
 
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -105,6 +106,12 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_TASK_ON_HOME);
         startActivity(intent);
         finish();
+    }
+
+    private void initialize() {
+        for (String a : ARRAY_ITEM_TYPES) {
+            hash.put(a, new AkarinValue(a, 0f));
+        }
     }
 
     private void preparePieChart() {
@@ -161,17 +168,7 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
                         HashMap<String, Object> itemMap = (HashMap<String, Object>) child.getValue();
                         if (itemMap != null) {
                             AkarinItem item = new AkarinItem((String) itemMap.get("itemType"), Float.valueOf(String.valueOf(itemMap.get("itemPrice"))), (Long) itemMap.get("itemTime"));
-                            Log.d(this.toString(), "item:" + item.toString());
-                            if (hash.containsKey(item.getItemType())) {
-                                Log.d(this.toString(), item.toString() + "is index:" + hash.get(item.getItemType()));
-                                Float currentValue = arry.get(hash.get(item.getItemType())).second;
-                                arry.set(hash.get(item.getItemType()), new NonFinalPair<>(item.getItemType(), currentValue + item.getItemPrice()));
-                            } else {
-                                Log.d(this.toString(), item.getItemType() + " is a new item type");
-                                hash.put(item.getItemType(), counter++);
-                                Log.d(this.toString(), item.getItemType() + " is index:" + hash.get(item.getItemType()));
-                                arry.add(new NonFinalPair<>(item.getItemType(), item.getItemPrice()));
-                            }
+                            hash.get(item.getItemType()).addItemPrice(item.getItemPrice());
                         } else {
                             Log.e(this.toString(), "item is null");
                         }
@@ -193,8 +190,10 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
 
     private void drawPie() {
         ArrayList<PieEntry> entries = new ArrayList<>();
-        for (int i = 0; i < arry.size(); i++) {
-            entries.add(new PieEntry(arry.get(i).second, arry.get(i).first));
+        for (String a : ARRAY_ITEM_TYPES) {
+            if (hash.get(a).getItemPrice() > 0f) {
+                entries.add(new PieEntry(hash.get(a).getItemPrice(), hash.get(a).getItemType()));
+            }
         }
 
         PieDataSet dataSet = new PieDataSet(entries, "Expenditure");
