@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        initialize();
+        initializeHash();
         preparePieChart();
 
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -91,12 +91,10 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         switch (item.getItemId()) {
             case R.id.log_out:
                 FirebaseAuth.getInstance().signOut();
-                Log.d(this.toString(), "Logging user out");
                 goToLoginActivity();
                 return true;
 
             default:
-                Log.d(this.toString(), "Unrecognized menu item");
                 return super.onOptionsItemSelected(item);
         }
     }
@@ -108,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         finish();
     }
 
-    private void initialize() {
+    private void initializeHash() {
         for (String a : ARRAY_ITEM_TYPES) {
             hash.put(a, new AkarinValue(a, 0f));
         }
@@ -158,19 +156,16 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         if (user != null) {
             Long latestUnixTime = System.currentTimeMillis() / 1000L;
             Long earliestUnixTime = latestUnixTime - ONE_MONTH_IN_SECONDS;
-            Log.d(this.toString(), "earliestUnixTime:" + earliestUnixTime + " latestUnixTime:" + latestUnixTime);
+
             final DatabaseReference userReference = FirebaseDatabase.getInstance().getReference("users").child(userId);
             userReference.child("items").orderByChild("itemTime").startAt(earliestUnixTime).endAt(latestUnixTime).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    Log.d(this.toString(), "There are " + dataSnapshot.getChildrenCount() + " items");
                     for (DataSnapshot child : dataSnapshot.getChildren()) {
                         HashMap<String, Object> itemMap = (HashMap<String, Object>) child.getValue();
                         if (itemMap != null) {
                             AkarinItem item = new AkarinItem((String) itemMap.get("itemType"), Float.valueOf(String.valueOf(itemMap.get("itemPrice"))), (Long) itemMap.get("itemTime"));
                             hash.get(item.getItemType()).addItemPrice(item.getItemPrice());
-                        } else {
-                            Log.e(this.toString(), "item is null");
                         }
                     }
                     drawPie();
@@ -183,7 +178,6 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
                 }
             });
         } else {
-            Log.d(this.toString(), "User is null");
             goToLoginActivity();
         }
     }
