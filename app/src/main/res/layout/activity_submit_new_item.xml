@@ -44,6 +44,7 @@
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="12dp"
         android:autofillHints="number"
+        android:hint="@string/enter_item_price_here"
         android:ems="10"
         android:inputType="numberDecimal"
         android:text="@string/default_item_price"

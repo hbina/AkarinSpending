@@ -202,17 +202,9 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         dataSet.setDrawIcons(false);
 
         ArrayList<Integer> colors = new ArrayList<>();
-        for (int c : ColorTemplate.VORDIPLOM_COLORS)
+        for (int c : ColorTemplate.JOYFUL_COLORS) {
             colors.add(c);
-        for (int c : ColorTemplate.JOYFUL_COLORS)
-            colors.add(c);
-        for (int c : ColorTemplate.COLORFUL_COLORS)
-            colors.add(c);
-        for (int c : ColorTemplate.LIBERTY_COLORS)
-            colors.add(c);
-        for (int c : ColorTemplate.PASTEL_COLORS)
-            colors.add(c);
-        colors.add(ColorTemplate.getHoloBlue());
+        }
 
         dataSet.setColors(colors);
         dataSet.setSliceSpace(3f);

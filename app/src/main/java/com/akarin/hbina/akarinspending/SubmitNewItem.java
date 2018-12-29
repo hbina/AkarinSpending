@@ -66,7 +66,7 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
         Spinner spinner = findViewById(R.id.spinner);
         spinner.setOnItemSelectedListener(this);
         List<String> categories = new ArrayList<>(Arrays.asList(MainActivity.ARRAY_ITEM_TYPES));
-        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, categories);
+        ArrayAdapter<String> dataAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categories);
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(dataAdapter);
     }

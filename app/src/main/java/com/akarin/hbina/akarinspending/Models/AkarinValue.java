@@ -2,10 +2,10 @@ package com.akarin.hbina.akarinspending.Models;
 
 public class AkarinValue {
 
-    protected String itemType;
-    protected Float itemPrice;
+    String itemType;
+    Float itemPrice;
 
-    public AkarinValue() {
+    AkarinValue() {
         this.itemType = "Others";
         this.itemPrice = 0f;
     }
