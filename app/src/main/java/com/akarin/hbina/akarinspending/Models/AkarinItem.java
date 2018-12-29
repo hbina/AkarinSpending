@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AkarinItem extends AkarinValue {
+
     private Long itemTime;
 
     public AkarinItem() {
@@ -31,9 +32,9 @@ public class AkarinItem extends AkarinValue {
     public Map<String, Object> toMap() {
         HashMap<String, Object> map = new HashMap<>();
 
-        map.put("itemType", itemType);
-        map.put("itemPrice", itemPrice);
-        map.put("itemTime", itemTime);
+        map.put("item_type", itemType);
+        map.put("item_price", itemPrice);
+        map.put("item_time", itemTime);
 
         return map;
     }

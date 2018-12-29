@@ -40,19 +40,26 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity implements OnChartValueSelectedListener {
+    public static final String[] ARRAY_ITEM_TYPES = new String[]{"Others", "Food", "Grocery", "Rent"};
     private static final Long ONE_MONTH_IN_SECONDS = 2592000L;
-    private static final String[] ARRAY_ITEM_TYPES = new String[]{"Others", "Food", "Grocery", "Rent"};
-    private static HashMap<String, AkarinValue> hash = new HashMap<>();
     private static Integer counter = 0;
     private FirebaseUser user;
     private PieChart chart;
+
+    private static void initializeHash(HashMap<String, AkarinValue> hash) {
+        if (hash != null) {
+            for (String a : ARRAY_ITEM_TYPES) {
+                hash.put(a, new AkarinValue(a, 0f));
+            }
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        initializeHash();
+        //initializeHash();
         preparePieChart();
 
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -106,12 +113,6 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         finish();
     }
 
-    private void initializeHash() {
-        for (String a : ARRAY_ITEM_TYPES) {
-            hash.put(a, new AkarinValue(a, 0f));
-        }
-    }
-
     private void preparePieChart() {
 
         chart = findViewById(R.id.chart);
@@ -158,17 +159,23 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
             Long earliestUnixTime = latestUnixTime - ONE_MONTH_IN_SECONDS;
 
             final DatabaseReference userReference = FirebaseDatabase.getInstance().getReference("users").child(userId);
-            userReference.child("items").orderByChild("itemTime").startAt(earliestUnixTime).endAt(latestUnixTime).addListenerForSingleValueEvent(new ValueEventListener() {
+            userReference.child("items").orderByChild("item_time").startAt(earliestUnixTime).endAt(latestUnixTime).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    HashMap<String, AkarinValue> hash = new HashMap<>();
+                    initializeHash(hash);
                     for (DataSnapshot child : dataSnapshot.getChildren()) {
                         HashMap<String, Object> itemMap = (HashMap<String, Object>) child.getValue();
                         if (itemMap != null) {
-                            AkarinItem item = new AkarinItem((String) itemMap.get("itemType"), Float.valueOf(String.valueOf(itemMap.get("itemPrice"))), (Long) itemMap.get("itemTime"));
-                            hash.get(item.getItemType()).addItemPrice(item.getItemPrice());
+                            if (itemMap.get("item_type") != null && itemMap.get("item_price") != null && itemMap.get("item_time") != null) {
+                                AkarinItem item = new AkarinItem((String) itemMap.get("item_type"), Float.valueOf(String.valueOf(itemMap.get("item_price"))), (Long) itemMap.get("item_time"));
+                                hash.get(item.getItemType()).addItemPrice(item.getItemPrice());
+                            } else {
+                                Log.e(this.toString(), "Data received is corrupted");
+                            }
                         }
                     }
-                    drawPie();
+                    drawPie(hash);
                 }
 
                 @Override
@@ -182,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         }
     }
 
-    private void drawPie() {
+    private void drawPie(HashMap<String, AkarinValue> hash) {
         ArrayList<PieEntry> entries = new ArrayList<>();
         for (String a : ARRAY_ITEM_TYPES) {
             if (hash.get(a).getItemPrice() > 0f) {

@@ -5,16 +5,10 @@
     <string name="create_account">Create Account</string>
     <string name="sign_in">Sign In</string>
     <string name="log_out">Log out</string>
-    <string name="submit">submit</string>
+    <string name="submit">Submit</string>
     <string name="item_prompt">Choose item type</string>
     <string name="warning_item_is_free">This item is free!</string>
     <string name="warning_input_check_failed">Please enter a correct value</string>
     <string name="default_item_price">0.0</string>
     <string name="test_email_com">test@email.com</string>
-    <string-array name="item_arrays">
-        <item>Others</item>
-        <item>Food</item>
-        <item>Grocery</item>
-        <item>Rent</item>
-    </string-array>
 </resources>
