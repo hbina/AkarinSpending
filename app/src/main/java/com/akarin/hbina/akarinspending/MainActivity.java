@@ -202,7 +202,7 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         dataSet.setDrawIcons(false);
 
         ArrayList<Integer> colors = new ArrayList<>();
-        for (int c : ColorTemplate.JOYFUL_COLORS) {
+        for (int c : ColorTemplate.MATERIAL_COLORS) {
             colors.add(c);
         }
 
