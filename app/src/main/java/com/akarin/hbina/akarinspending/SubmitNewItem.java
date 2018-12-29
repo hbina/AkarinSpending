@@ -15,9 +15,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ServerValue;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -117,13 +115,12 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
     }
 
     private void addItem(String userId, String itemName, Float itemPrice) {
-        AkarinItem user = new AkarinItem(itemName, itemPrice, new Date().getTime());
+        AkarinItem user = new AkarinItem(itemName, itemPrice);
 
         DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
         String key = mDatabase.child("users").child(userId).child("items").push().getKey();
 
         Map<String, Object> newItem = user.toMap();
-        newItem.put("itemTime", ServerValue.TIMESTAMP);
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/users/" + userId + "/items/" + key, newItem);
 

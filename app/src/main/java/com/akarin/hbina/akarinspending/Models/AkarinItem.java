@@ -19,6 +19,12 @@ public class AkarinItem {
         this.itemTime = itemTime;
     }
 
+    public AkarinItem(String itemType, Float itemPrice) {
+        this.itemType = itemType;
+        this.itemPrice = itemPrice;
+        this.itemTime = System.currentTimeMillis() / 1000L;
+    }
+
     public String getItemType() {
         return itemType;
     }

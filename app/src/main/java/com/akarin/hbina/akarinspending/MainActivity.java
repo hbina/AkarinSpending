@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.akarin.hbina.akarinspending.Models.AkarinItem;
+import com.akarin.hbina.akarinspending.Util.NonFinalPair;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Legend;
@@ -25,6 +26,7 @@ import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.PercentFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
+import com.github.mikephil.charting.utils.ColorTemplate;
 import com.github.mikephil.charting.utils.MPPointF;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -32,7 +34,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -40,6 +41,8 @@ import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity implements OnChartValueSelectedListener {
     private static final Long ONE_MONTH_IN_SECONDS = 2592000L;
+    private static HashMap<String, Integer> hash = new HashMap<>();
+    private static ArrayList<NonFinalPair<String, Float>> arry = new ArrayList<>();
     private static Integer counter = 0;
     private FirebaseUser user;
     private PieChart chart;
@@ -76,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             String userId = user.getUid();
-            populatePieChart(userId);
+            queryFirebase(userId);
         } else {
             finish();
         }
@@ -144,62 +147,42 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         return new SpannableString("Your expenditure\nof the past 30 days");
     }
 
-    private void populatePieChart(String userId) {
-
+    private void queryFirebase(String userId) {
         if (user != null) {
-            final DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(userId);
-            ref.child("current_timestamp").setValue(ServerValue.TIMESTAMP, new DatabaseReference.CompletionListener() {
+            long latestUnixTime = System.currentTimeMillis() / 1000L;
+            long earliestUnixTime = latestUnixTime - ONE_MONTH_IN_SECONDS;
+            Log.d(this.toString(), "earliestUnixTime:" + earliestUnixTime + " latestUnixTime:" + latestUnixTime);
+            final DatabaseReference userReference = FirebaseDatabase.getInstance().getReference("users").child(userId);
+            userReference.child("items").orderByChild("itemTime").startAt(earliestUnixTime).endAt(latestUnixTime).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
-                public void onComplete(final DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
-                    databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            Long server_timestamp = dataSnapshot.getValue(Long.class);
-                            if (server_timestamp != null) {
-                                Long earliestUnixTime = server_timestamp - ONE_MONTH_IN_SECONDS;
-                                ref.child("items").orderByChild("itemTime").startAt(earliestUnixTime).endAt(server_timestamp).addValueEventListener(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                        Log.d(this.toString(), "There are " + dataSnapshot.getChildrenCount() + " items");
-                                        HashMap<String, Integer> hash = new HashMap<>();
-                                        ArrayList<NonFinalPair<String, Float>> arry = new ArrayList<>();
-                                        for (DataSnapshot child : dataSnapshot.getChildren()) {
-                                            HashMap<String, Object> itemMap = (HashMap<String, Object>) child.getValue();
-                                            if (itemMap != null) {
-                                                AkarinItem item = new AkarinItem((String) itemMap.get("itemType"), Float.valueOf(String.valueOf(itemMap.get("itemPrice"))), (Long) itemMap.get("itemTime"));
-                                                Log.d(this.toString(), "item:" + item.toString());
-                                                if (hash.containsKey(item.getItemType())) {
-                                                    Float currentValue = arry.get(hash.get(item.getItemType())).second;
-                                                    arry.set(hash.get(item.getItemType()), new NonFinalPair<>(item.getItemType(), currentValue + item.getItemPrice()));
-                                                } else {
-                                                    Log.d(this.toString(), item.getItemType() + " is a new item type");
-                                                    hash.put(item.getItemType(), counter++);
-                                                    arry.add(new NonFinalPair<>(item.getItemType(), item.getItemPrice()));
-                                                }
-                                            } else {
-                                                Log.e(this.toString(), "item is null");
-                                            }
-                                        }
-                                        drawPie(arry);
-                                    }
-
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                                        Log.e(this.toString(), "Unable to obtain AkarinItems");
-                                        Log.e(this.toString(), databaseError.getMessage());
-                                    }
-                                });
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    Log.d(this.toString(), "There are " + dataSnapshot.getChildrenCount() + " items");
+                    for (DataSnapshot child : dataSnapshot.getChildren()) {
+                        HashMap<String, Object> itemMap = (HashMap<String, Object>) child.getValue();
+                        if (itemMap != null) {
+                            AkarinItem item = new AkarinItem((String) itemMap.get("itemType"), Float.valueOf(String.valueOf(itemMap.get("itemPrice"))), (Long) itemMap.get("itemTime"));
+                            Log.d(this.toString(), "item:" + item.toString());
+                            if (hash.containsKey(item.getItemType())) {
+                                Log.d(this.toString(), item.toString() + "is index:" + hash.get(item.getItemType()));
+                                Float currentValue = arry.get(hash.get(item.getItemType())).second;
+                                arry.set(hash.get(item.getItemType()), new NonFinalPair<>(item.getItemType(), currentValue + item.getItemPrice()));
                             } else {
-                                Log.e(this.toString(), "Unable to obtain timestamp from snapshot");
+                                Log.d(this.toString(), item.getItemType() + " is a new item type");
+                                hash.put(item.getItemType(), counter++);
+                                Log.d(this.toString(), item.getItemType() + " is index:" + hash.get(item.getItemType()));
+                                arry.add(new NonFinalPair<>(item.getItemType(), item.getItemPrice()));
                             }
+                        } else {
+                            Log.e(this.toString(), "item is null");
                         }
+                    }
+                    drawPie();
+                }
 
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
-                            Log.e(this.toString(), "Unable to obtain current timestamp");
-                            Log.e(this.toString(), databaseError.getMessage());
-                        }
-                    });
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Log.e(this.toString(), "Unable to obtain AkarinItems");
+                    Log.e(this.toString(), databaseError.getMessage());
                 }
             });
         } else {
@@ -208,7 +191,7 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         }
     }
 
-    private void drawPie(ArrayList<NonFinalPair<String, Float>> arry) {
+    private void drawPie() {
         ArrayList<PieEntry> entries = new ArrayList<>();
         for (int i = 0; i < arry.size(); i++) {
             entries.add(new PieEntry(arry.get(i).second, arry.get(i).first));
@@ -218,6 +201,20 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
 
         dataSet.setDrawIcons(false);
 
+        ArrayList<Integer> colors = new ArrayList<>();
+        for (int c : ColorTemplate.VORDIPLOM_COLORS)
+            colors.add(c);
+        for (int c : ColorTemplate.JOYFUL_COLORS)
+            colors.add(c);
+        for (int c : ColorTemplate.COLORFUL_COLORS)
+            colors.add(c);
+        for (int c : ColorTemplate.LIBERTY_COLORS)
+            colors.add(c);
+        for (int c : ColorTemplate.PASTEL_COLORS)
+            colors.add(c);
+        colors.add(ColorTemplate.getHoloBlue());
+
+        dataSet.setColors(colors);
         dataSet.setSliceSpace(3f);
         dataSet.setIconsOffset(new MPPointF(0, 40));
         dataSet.setSelectionShift(5f);
