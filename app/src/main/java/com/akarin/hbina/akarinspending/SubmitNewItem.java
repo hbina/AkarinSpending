@@ -129,7 +129,7 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
     }
 
     @Override
-    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+    public void onItemSelected(AdapterView<?> adapterView, View view, int i, Long l) {
         itemType = (String) adapterView.getItemAtPosition(i);
     }
 

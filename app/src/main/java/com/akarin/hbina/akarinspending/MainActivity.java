@@ -156,8 +156,8 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
 
     private void queryFirebase(String userId) {
         if (user != null) {
-            long latestUnixTime = System.currentTimeMillis() / 1000L;
-            long earliestUnixTime = latestUnixTime - ONE_MONTH_IN_SECONDS;
+            Long latestUnixTime = System.currentTimeMillis() / 1000L;
+            Long earliestUnixTime = latestUnixTime - ONE_MONTH_IN_SECONDS;
             Log.d(this.toString(), "earliestUnixTime:" + earliestUnixTime + " latestUnixTime:" + latestUnixTime);
             final DatabaseReference userReference = FirebaseDatabase.getInstance().getReference("users").child(userId);
             userReference.child("items").orderByChild("itemTime").startAt(earliestUnixTime).endAt(latestUnixTime).addListenerForSingleValueEvent(new ValueEventListener() {
