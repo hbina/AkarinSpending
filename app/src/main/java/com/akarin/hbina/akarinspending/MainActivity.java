@@ -198,14 +198,12 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         }
 
         PieDataSet dataSet = new PieDataSet(entries, "Expenditure");
-
         dataSet.setDrawIcons(false);
 
         ArrayList<Integer> colors = new ArrayList<>();
         for (int c : ColorTemplate.MATERIAL_COLORS) {
             colors.add(c);
         }
-
         dataSet.setColors(colors);
         dataSet.setSliceSpace(3f);
         dataSet.setIconsOffset(new MPPointF(0, 40));
