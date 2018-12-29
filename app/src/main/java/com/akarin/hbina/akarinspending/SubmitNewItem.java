@@ -67,6 +67,7 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
         return itemType != null && itemType.length() >= 1;
     }
 
+    @SuppressWarnings("Annotator")
     private boolean checkItemPrice(String itemPrice) {
         /*
         Regular expression taken from https://docs.oracle.com/javase/8/docs/api/java/lang/Double.html#valueOf-java.lang.String-
