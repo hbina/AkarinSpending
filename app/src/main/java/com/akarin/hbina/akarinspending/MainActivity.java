@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.SpannableString;
 import android.util.Log;
 import android.view.Menu;
@@ -59,7 +58,6 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //initializeHash();
         preparePieChart();
 
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -70,9 +68,6 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
                 startActivity(intent);
             }
         });
-
-        Toolbar myToolbar = findViewById(R.id.main_toolbar);
-        setSupportActionBar(myToolbar);
     }
 
     @Override
@@ -89,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
             String userId = user.getUid();
             queryFirebase(userId);
         } else {
-            finish();
+            onBackPressed();
         }
     }
 
@@ -97,7 +92,6 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.log_out:
-                FirebaseAuth.getInstance().signOut();
                 goToLoginActivity();
                 return true;
 
@@ -107,6 +101,7 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
     }
 
     private void goToLoginActivity() {
+        FirebaseAuth.getInstance().signOut();
         Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_TASK_ON_HOME);
         startActivity(intent);
@@ -121,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         chart.getDescription().setEnabled(false);
         chart.setExtraOffsets(5, 10, 5, 5);
         chart.setDragDecelerationFrictionCoef(0.95f);
-        chart.setCenterText(generateCenterSpannableText());
+        chart.setCenterText(new SpannableString("Your expenditure\nof the past 30 days"));
         chart.setDrawHoleEnabled(true);
         chart.setHoleColor(Color.WHITE);
         chart.setTransparentCircleColor(Color.WHITE);
@@ -147,10 +142,6 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         // entry label styling
         chart.setEntryLabelColor(Color.WHITE);
         chart.setEntryLabelTextSize(12f);
-    }
-
-    private SpannableString generateCenterSpannableText() {
-        return new SpannableString("Your expenditure\nof the past 30 days");
     }
 
     private void queryFirebase(String userId) {

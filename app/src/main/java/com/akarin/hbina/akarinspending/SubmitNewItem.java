@@ -42,6 +42,7 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
         cancelBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                onBackPressed();
                 finish();
             }
         });
@@ -124,12 +125,12 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
     }
 
     private void addItem(String userId, String itemName, Float itemPrice) {
-        AkarinItem user = new AkarinItem(itemName, itemPrice);
+        AkarinItem item = new AkarinItem(itemName, itemPrice);
 
         DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
         String key = mDatabase.child("users").child(userId).child("items").push().getKey();
 
-        Map<String, Object> newItem = user.toMap();
+        Map<String, Object> newItem = item.toMap();
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/users/" + userId + "/items/" + key, newItem);
 
@@ -144,5 +145,11 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
     @Override
     public void onNothingSelected(AdapterView<?> adapterView) {
         Log.d(this.toString(), "Nothing is selected???" + adapterView.toString());
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(this.toString(), "is destroyed");
     }
 }
