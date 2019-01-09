@@ -1,4 +1,4 @@
-package com.akarin.hbina.akarinspending.Models;
+package com.akarin.hbina.akarinspending.Model;
 
 public class AkarinValue {
 

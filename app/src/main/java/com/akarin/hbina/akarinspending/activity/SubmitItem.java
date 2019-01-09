@@ -1,4 +1,4 @@
-package com.akarin.hbina.akarinspending;
+package com.akarin.hbina.akarinspending.Activity;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -11,7 +11,9 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.akarin.hbina.akarinspending.Models.AkarinItem;
+import com.akarin.hbina.akarinspending.Model.AkarinItem;
+import com.akarin.hbina.akarinspending.R;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
@@ -24,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+public class SubmitItem extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
     private static String itemType;
     private EditText itemPriceText;
@@ -66,7 +68,7 @@ public class SubmitNewItem extends AppCompatActivity implements AdapterView.OnIt
 
         Spinner spinner = findViewById(R.id.spinner);
         spinner.setOnItemSelectedListener(this);
-        List<String> categories = new ArrayList<>(Arrays.asList(MainActivity.ARRAY_ITEM_TYPES));
+        List<String> categories = new ArrayList<>(Arrays.asList(Main.ARRAY_ITEM_TYPES));
         ArrayAdapter<String> dataAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categories);
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(dataAdapter);
