@@ -1,4 +1,4 @@
-package com.akarin.hbina.akarinspending.Activity;
+package com.akarin.hbina.akarinspending.activity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -21,9 +21,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
-import com.akarin.hbina.akarinspending.Model.AkarinItem;
-import com.akarin.hbina.akarinspending.Model.AkarinValue;
 import com.akarin.hbina.akarinspending.R;
+import com.akarin.hbina.akarinspending.model.AkarinItem;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Legend;
@@ -43,17 +42,10 @@ import java.util.HashMap;
 public class Main extends AppCompatActivity implements OnChartValueSelectedListener {
   public static final String[] ARRAY_ITEM_TYPES = new String[]{ "Others", "Food", "Grocery", "Rent" };
   private static final Long ONE_MONTH_IN_SECONDS = 2592000L;
-  private static Integer counter = 0;
-  private FirebaseUser user;
-  private PieChart chart;
-
-  private static void initializeHash(HashMap<String, AkarinValue> hash) {
-    if (hash != null) {
-      for (String a : ARRAY_ITEM_TYPES) {
-        hash.put(a, new AkarinValue(a, 0f));
-      }
-    }
-  }
+  private static HashMap<String, AkarinItem> hash = new HashMap<>();
+  private static ArrayList<PieEntry> entries = new ArrayList<>();
+  private static FirebaseUser user;
+  private static PieChart chart;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +62,14 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
         startActivity(intent);
       }
     });
+
+    user = FirebaseAuth.getInstance().getCurrentUser();
+    if (user != null) {
+      String userId = user.getUid();
+      setupFirebaseConnection(userId);
+    } else {
+      onBackPressed();
+    }
   }
 
   @Override
@@ -81,13 +81,6 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
   @Override
   protected void onResume() {
     super.onResume();
-    user = FirebaseAuth.getInstance().getCurrentUser();
-    if (user != null) {
-      String userId = user.getUid();
-      queryFirebase(userId);
-    } else {
-      onBackPressed();
-    }
   }
 
   @Override
@@ -104,10 +97,9 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
 
   private void goToLoginActivity() {
     FirebaseAuth.getInstance().signOut();
-    Intent intent = new Intent(this, Login.class);
+    Intent intent = new Intent(getApplicationContext(), Login.class);
     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_TASK_ON_HOME);
     startActivity(intent);
-    finish();
   }
 
   private void preparePieChart() {
@@ -146,34 +138,27 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
     chart.setEntryLabelTextSize(12f);
   }
 
-  private void queryFirebase(String userId) {
+  private void setupFirebaseConnection(String userId) {
     if (user != null) {
       Long latestUnixTime = System.currentTimeMillis() / 1000L;
       Long earliestUnixTime = latestUnixTime - ONE_MONTH_IN_SECONDS;
 
       final DatabaseReference userReference = FirebaseDatabase.getInstance().getReference("users")
           .child(userId);
-      userReference.child("items").orderByChild("item_time").startAt(earliestUnixTime)
-          .endAt(latestUnixTime).addListenerForSingleValueEvent(new ValueEventListener() {
+      userReference.child("items").orderByChild("itemTime").startAt(earliestUnixTime).addValueEventListener(new ValueEventListener() {
         @Override
         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-          HashMap<String, AkarinValue> hash = new HashMap<>();
-          initializeHash(hash);
           for (DataSnapshot child : dataSnapshot.getChildren()) {
-            HashMap<String, Object> itemMap = (HashMap<String, Object>) child.getValue();
-            if (itemMap != null) {
-              if (itemMap.get("item_type") != null && itemMap.get("item_price") != null && itemMap
-                  .get("item_time") != null) {
-                AkarinItem item = new AkarinItem((String) itemMap.get("item_type"),
-                    Float.valueOf(String.valueOf(itemMap.get("item_price"))),
-                    (Long) itemMap.get("item_time"));
-                hash.get(item.getItemType()).addItemPrice(item.getItemPrice());
-              } else {
-                Log.e(this.toString(), "Data received is corrupted");
+            AkarinItem akarinItem = child.getValue(AkarinItem.class);
+            if (akarinItem != null) {
+              if (!hash.containsKey(child.getKey())) {
+                hash.put(child.getKey(), akarinItem);
+                entries.add(new PieEntry(akarinItem.getItemPrice(), akarinItem.getItemType()));
+                Log.d(this.toString(), akarinItem.toString());
               }
             }
           }
-          drawPie(hash);
+          drawPie();
         }
 
         @Override
@@ -187,34 +172,30 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
     }
   }
 
-  private void drawPie(HashMap<String, AkarinValue> hash) {
-    ArrayList<PieEntry> entries = new ArrayList<>();
-    for (String a : ARRAY_ITEM_TYPES) {
-      if (hash.get(a).getItemPrice() > 0f) {
-        entries.add(new PieEntry(hash.get(a).getItemPrice(), hash.get(a).getItemType()));
+  private void drawPie() {
+    if (entries.size() > 0) {
+
+      PieDataSet dataSet = new PieDataSet(entries, "Expenditure");
+      dataSet.setDrawIcons(false);
+
+      ArrayList<Integer> colors = new ArrayList<>();
+      for (int c : ColorTemplate.MATERIAL_COLORS) {
+        colors.add(c);
       }
+      dataSet.setColors(colors);
+      dataSet.setSliceSpace(3f);
+      dataSet.setIconsOffset(new MPPointF(0, 40));
+      dataSet.setSelectionShift(5f);
+
+      PieData data = new PieData(dataSet);
+      data.setValueFormatter(new PercentFormatter());
+      data.setValueTextSize(11f);
+      data.setValueTextColor(Color.WHITE);
+
+      chart.setData(data);
+      chart.highlightValues(null);
+      chart.invalidate();
     }
-
-    PieDataSet dataSet = new PieDataSet(entries, "Expenditure");
-    dataSet.setDrawIcons(false);
-
-    ArrayList<Integer> colors = new ArrayList<>();
-    for (int c : ColorTemplate.MATERIAL_COLORS) {
-      colors.add(c);
-    }
-    dataSet.setColors(colors);
-    dataSet.setSliceSpace(3f);
-    dataSet.setIconsOffset(new MPPointF(0, 40));
-    dataSet.setSelectionShift(5f);
-
-    PieData data = new PieData(dataSet);
-    data.setValueFormatter(new PercentFormatter());
-    data.setValueTextSize(11f);
-    data.setValueTextColor(Color.WHITE);
-
-    chart.setData(data);
-    chart.highlightValues(null);
-    chart.invalidate();
   }
 
   @Override
@@ -228,7 +209,6 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
         "Value: " + entry.getY() + ", index: " + highlight.getX() + ", DataSet index: " + highlight
             .getDataSetIndex(),
         Toast.LENGTH_SHORT).show();
-
   }
 
   @Override
