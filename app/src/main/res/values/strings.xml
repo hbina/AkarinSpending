@@ -1,14 +1,14 @@
 <resources>
-    <string name="app_name">AkarinSpending</string>
-    <string name="hint_password">Enter your password…</string>
-    <string name="hint_email">Enter your email…</string>
-    <string name="create_account">Create Account</string>
-    <string name="sign_in">Sign In</string>
-    <string name="log_out">Log out</string>
-    <string name="submit">Submit</string>
-    <string name="item_prompt">Choose item type</string>
-    <string name="warning_item_is_free">This item is free!</string>
-    <string name="warning_input_check_failed">Please enter a correct value</string>
-    <string name="default_item_price">0.0</string>
-    <string name="enter_item_price_here">Enter item price here…</string>
+  <string name="app_name">AkarinSpending</string>
+  <string name="hint_password">Enter your password…</string>
+  <string name="hint_email">Enter your email…</string>
+  <string name="create_account">Create Account</string>
+  <string name="sign_in">Sign In</string>
+  <string name="log_out">Log out</string>
+  <string name="submit">Submit</string>
+  <string name="item_prompt">Choose item type</string>
+  <string name="warning_item_is_free">This item is free!</string>
+  <string name="warning_input_check_failed">Please enter a correct value</string>
+  <string name="default_item_price">0.0</string>
+  <string name="enter_item_price_here">Enter item price here…</string>
 </resources>

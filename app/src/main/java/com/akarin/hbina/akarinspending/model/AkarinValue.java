@@ -1,41 +1,52 @@
-package com.akarin.hbina.akarinspending.Model;
+package com.akarin.hbina.akarinspending.model;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class AkarinValue {
 
-    String itemType;
-    Float itemPrice;
+  String itemType;
+  Float itemPrice;
 
-    AkarinValue() {
-        this.itemType = "Others";
-        this.itemPrice = 0f;
-    }
+  AkarinValue() {
+    // Required for Firebase
+  }
 
-    public AkarinValue(String itemType, Float itemPrice) {
-        this.itemType = itemType;
-        this.itemPrice = itemPrice;
-    }
+  public AkarinValue(String itemType, Float itemPrice) {
+    this.itemType = itemType;
+    this.itemPrice = itemPrice;
+  }
 
-    public String getItemType() {
-        return this.itemType;
-    }
+  public String getItemType() {
+    return this.itemType;
+  }
 
-    public void setItemType(String itemType) {
-        this.itemType = itemType;
-    }
+  public void setItemType(String itemType) {
+    this.itemType = itemType;
+  }
 
-    public Float getItemPrice() {
-        return this.itemPrice;
-    }
+  public Float getItemPrice() {
+    return this.itemPrice;
+  }
 
-    public void setItemPrice(Float itemPrice) {
-        this.itemPrice = itemPrice;
-    }
+  public void setItemPrice(Float itemPrice) {
+    this.itemPrice = itemPrice;
+  }
 
-    public void addItemPrice(Float f) {
-        this.itemPrice += f;
-    }
+  public void addItemPrice(Float f) {
+    this.itemPrice += f;
+  }
 
-    public String toString() {
-        return "AkarinValue itemType:" + itemType + " itemPrice:" + itemPrice;
-    }
+  public Map<String, Object> toMap() {
+    HashMap<String, Object> map = new HashMap<>();
+
+    map.put("itemType", itemType);
+    map.put("itemPrice", itemPrice);
+
+    return map;
+  }
+
+  public String toString() {
+    return "AkarinValue itemType:" + itemType + " itemPrice:" + itemPrice;
+  }
 }

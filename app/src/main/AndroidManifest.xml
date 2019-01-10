@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.akarin.hbina.akarinspending">
+          xmlns:tools="http://schemas.android.com/tools"
+          package="com.akarin.hbina.akarinspending">
 
     <application
         android:allowBackup="true"
@@ -11,17 +11,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
-        <activity android:name=".MainActivity" />
-        <activity android:name=".LoginActivity">
+        <activity android:name=".activity.Main"/>
+        <activity android:name=".activity.Login">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.MAIN"/>
 
-                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
         <activity
-            android:name=".SubmitNewItem"
-            android:parentActivityName="com.akarin.hbina.akarinspending.MainActivity" />
+            android:name=".activity.SubmitItem"
+            android:parentActivityName=".activity.Main"/>
     </application>
 
 </manifest>
