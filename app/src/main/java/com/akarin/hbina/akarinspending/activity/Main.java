@@ -43,9 +43,11 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
   public static final String[] ARRAY_ITEM_TYPES = new String[]{ "Others", "Food", "Grocery", "Rent" };
   private static final Long ONE_MONTH_IN_SECONDS = 2592000L;
   private static HashMap<String, AkarinItem> hash = new HashMap<>();
+  private static HashMap<String, Integer> itemTypeIndexHash = new HashMap<>();
   private static ArrayList<PieEntry> entries = new ArrayList<>();
   private static FirebaseUser user;
   private static PieChart chart;
+  private static int counter = 0;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -145,34 +147,46 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
 
       final DatabaseReference userReference = FirebaseDatabase.getInstance().getReference("users")
           .child(userId);
-      userReference.child("items").orderByChild("itemTime").startAt(earliestUnixTime).addValueEventListener(new ValueEventListener() {
-        @Override
-        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-          for (DataSnapshot child : dataSnapshot.getChildren()) {
-            AkarinItem akarinItem = child.getValue(AkarinItem.class);
-            if (akarinItem != null) {
-              if (!hash.containsKey(child.getKey())) {
-                hash.put(child.getKey(), akarinItem);
-                entries.add(new PieEntry(akarinItem.getItemPrice(), akarinItem.getItemType()));
-                Log.d(this.toString(), akarinItem.toString());
+      userReference.child("items").orderByChild("itemTime").startAt(earliestUnixTime)
+          .addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+              for (DataSnapshot child : dataSnapshot.getChildren()) {
+                AkarinItem akarinItem = child.getValue(AkarinItem.class);
+                if (akarinItem != null) {
+                  if (!itemTypeIndexHash.containsKey(akarinItem.getItemType())) {
+                    itemTypeIndexHash.put(akarinItem.getItemType(), counter++);
+                    entries.add(new PieEntry(0f, akarinItem.getItemType()));
+                    Log.d(this.toString(),
+                        "itemType:" + akarinItem.getItemType() + " index:" + itemTypeIndexHash
+                            .get(akarinItem.getItemType()));
+                  }
+                  if (!hash.containsKey(child.getKey())) {
+                    hash.put(child.getKey(), akarinItem);
+                    entries.set(itemTypeIndexHash.get(akarinItem.getItemType()),
+                        new PieEntry(akarinItem.getItemPrice() + entries
+                            .get(itemTypeIndexHash.get(akarinItem.getItemType())).getValue(),
+                            akarinItem.getItemType()));
+                    Log.d(this.toString(), akarinItem.toString());
+                  }
+                }
               }
+              refreshPie();
             }
-          }
-          drawPie();
-        }
 
-        @Override
-        public void onCancelled(@NonNull DatabaseError databaseError) {
-          Log.e(this.toString(), "Unable to obtain AkarinItems");
-          Log.e(this.toString(), databaseError.getMessage());
-        }
-      });
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+              Log.e(this.toString(), "Unable to obtain AkarinItems");
+              Log.e(this.toString(), databaseError.getMessage());
+            }
+          });
     } else {
       goToLoginActivity();
     }
   }
 
-  private void drawPie() {
+  private void refreshPie() {
+    Log.d(this.toString(), "entries.size():" + entries.size());
     if (entries.size() > 0) {
 
       PieDataSet dataSet = new PieDataSet(entries, "Expenditure");

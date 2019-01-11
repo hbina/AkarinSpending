@@ -12,7 +12,7 @@ public class AkarinValue {
     // Required for Firebase
   }
 
-  public AkarinValue(String itemType, Float itemPrice) {
+  AkarinValue(String itemType, Float itemPrice) {
     this.itemType = itemType;
     this.itemPrice = itemPrice;
   }
