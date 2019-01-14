@@ -157,9 +157,6 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
                   if (!itemTypeIndexHash.containsKey(akarinItem.getItemType())) {
                     itemTypeIndexHash.put(akarinItem.getItemType(), counter++);
                     entries.add(new PieEntry(0f, akarinItem.getItemType()));
-                    Log.d(this.toString(),
-                        "itemType:" + akarinItem.getItemType() + " index:" + itemTypeIndexHash
-                            .get(akarinItem.getItemType()));
                   }
                   if (!hash.containsKey(child.getKey())) {
                     hash.put(child.getKey(), akarinItem);
@@ -167,7 +164,6 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
                         new PieEntry(akarinItem.getItemPrice() + entries
                             .get(itemTypeIndexHash.get(akarinItem.getItemType())).getValue(),
                             akarinItem.getItemType()));
-                    Log.d(this.toString(), akarinItem.toString());
                   }
                 }
               }
