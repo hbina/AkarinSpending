@@ -19,7 +19,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
 import com.akarin.hbina.akarinspending.R;
 import com.akarin.hbina.akarinspending.model.AkarinItem;
@@ -42,6 +41,7 @@ import java.util.HashMap;
 public class Main extends AppCompatActivity implements OnChartValueSelectedListener {
   public static final String[] ARRAY_ITEM_TYPES = new String[]{ "Others", "Food", "Grocery", "Rent" };
   private static final Long ONE_MONTH_IN_SECONDS = 2592000L;
+  private static final String TAG = "Main";
   private static HashMap<String, AkarinItem> hash = new HashMap<>();
   private static HashMap<String, Integer> itemTypeIndexHash = new HashMap<>();
   private static ArrayList<PieEntry> entries = new ArrayList<>();
@@ -81,11 +81,6 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
   }
 
   @Override
-  protected void onResume() {
-    super.onResume();
-  }
-
-  @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
       case R.id.log_out:
@@ -98,6 +93,8 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
   }
 
   private void goToLoginActivity() {
+    Log.v(TAG, "goToLoginActivity()");
+
     FirebaseAuth.getInstance().signOut();
     Intent intent = new Intent(getApplicationContext(), Login.class);
     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_TASK_ON_HOME);
@@ -105,9 +102,10 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
   }
 
   private void preparePieChart() {
+    Log.v(TAG, "preparePieChart()");
 
+    // Set up chart
     chart = findViewById(R.id.chart);
-
     chart.setUsePercentValues(true);
     chart.getDescription().setEnabled(false);
     chart.setExtraOffsets(5, 10, 5, 5);
@@ -124,8 +122,9 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
     chart.setRotationEnabled(true);
     chart.setHighlightPerTapEnabled(true);
     chart.setOnChartValueSelectedListener(this);
-
     chart.animateY(1400, Easing.EaseInOutQuad);
+
+    // Set up legend
     Legend legend = chart.getLegend();
     legend.setVerticalAlignment(Legend.LegendVerticalAlignment.TOP);
     legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.RIGHT);
@@ -141,6 +140,7 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
   }
 
   private void setupFirebaseConnection(String userId) {
+    Log.v(TAG, "setupFirebaseConnection( userId:" + userId + ")");
     if (user != null) {
       Long latestUnixTime = System.currentTimeMillis() / 1000L;
       Long earliestUnixTime = latestUnixTime - ONE_MONTH_IN_SECONDS;
@@ -172,8 +172,8 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-              Log.e(this.toString(), "Unable to obtain AkarinItems");
-              Log.e(this.toString(), databaseError.getMessage());
+              Log.e(TAG, "Unable to obtain AkarinItems");
+              Log.e(TAG, databaseError.getMessage());
             }
           });
     } else {
@@ -182,7 +182,7 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
   }
 
   private void refreshPie() {
-    Log.d(this.toString(), "entries.size():" + entries.size());
+    Log.v(TAG, "refreshPie()");
     if (entries.size() > 0) {
 
       PieDataSet dataSet = new PieDataSet(entries, "Expenditure");
@@ -210,19 +210,16 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
 
   @Override
   public void onValueSelected(Entry entry, Highlight highlight) {
-    if (entry == null) {
-      Log.d(this.toString(), "Nothing is selected.");
-      return;
+    Log.v(TAG, "onValueSelected(entry:" + entry + " hihglight:" + highlight + ")");
+    if (entry != null) {
+      /*
+      TODO: Start another activity to show the list of items
+       */
     }
-    Toast.makeText(
-        getApplicationContext(),
-        "Value: " + entry.getY() + ", index: " + highlight.getX() + ", DataSet index: " + highlight
-            .getDataSetIndex(),
-        Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onNothingSelected() {
-    Log.d(this.toString(), "Nothing is selected...");
+    Log.v(TAG, "onNothingSelected()");
   }
 }
