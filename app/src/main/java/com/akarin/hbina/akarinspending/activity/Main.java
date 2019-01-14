@@ -22,6 +22,7 @@ import android.view.View;
 
 import com.akarin.hbina.akarinspending.R;
 import com.akarin.hbina.akarinspending.model.AkarinItem;
+import com.akarin.hbina.akarinspending.util.AkarinDatabase;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Legend;
@@ -36,18 +37,15 @@ import com.github.mikephil.charting.utils.ColorTemplate;
 import com.github.mikephil.charting.utils.MPPointF;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class Main extends AppCompatActivity implements OnChartValueSelectedListener {
   public static final String[] ARRAY_ITEM_TYPES = new String[]{ "Others", "Food", "Grocery", "Rent" };
   private static final Long ONE_MONTH_IN_SECONDS = 2592000L;
   private static final String TAG = "Main";
-  private static HashMap<String, AkarinItem> hash = new HashMap<>();
-  private static HashMap<String, Integer> itemTypeIndexHash = new HashMap<>();
-  private static ArrayList<PieEntry> entries = new ArrayList<>();
   private static FirebaseUser user;
   private static PieChart chart;
-  private static int counter = 0;
+
+  private AkarinDatabase akarinDatabase = AkarinDatabase.getDatabase();
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -154,17 +152,8 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
               for (DataSnapshot child : dataSnapshot.getChildren()) {
                 AkarinItem akarinItem = child.getValue(AkarinItem.class);
                 if (akarinItem != null) {
-                  if (!itemTypeIndexHash.containsKey(akarinItem.getItemType())) {
-                    itemTypeIndexHash.put(akarinItem.getItemType(), counter++);
-                    entries.add(new PieEntry(0f, akarinItem.getItemType()));
-                  }
-                  if (!hash.containsKey(child.getKey())) {
-                    hash.put(child.getKey(), akarinItem);
-                    entries.set(itemTypeIndexHash.get(akarinItem.getItemType()),
-                        new PieEntry(akarinItem.getItemPrice() + entries
-                            .get(itemTypeIndexHash.get(akarinItem.getItemType())).getValue(),
-                            akarinItem.getItemType()));
-                  }
+                  Log.d(TAG, akarinItem.toString());
+                  akarinDatabase.addItem(child.getKey(), akarinItem);
                 }
               }
               refreshPie();
@@ -172,7 +161,6 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-              Log.e(TAG, "Unable to obtain AkarinItems");
               Log.e(TAG, databaseError.getMessage());
             }
           });
@@ -183,6 +171,7 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
 
   private void refreshPie() {
     Log.v(TAG, "refreshPie()");
+    ArrayList<PieEntry> entries = akarinDatabase.getAllItemAsPieEntries();
     if (entries.size() > 0) {
 
       PieDataSet dataSet = new PieDataSet(entries, "Expenditure");

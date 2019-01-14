@@ -1,9 +1,11 @@
 package com.akarin.hbina.akarinspending.model;
 
+import android.support.annotation.NonNull;
+
 import java.util.HashMap;
 import java.util.Map;
 
-public class AkarinItem extends AkarinValue {
+public class AkarinItem extends AkarinValue implements Comparable<Long> {
 
   private Long itemTime;
 
@@ -42,5 +44,10 @@ public class AkarinItem extends AkarinValue {
 
   public String toString() {
     return "AkarinItem super:" + super.toString() + " itemTime:" + itemTime;
+  }
+
+  @Override
+  public int compareTo(@NonNull Long aLong) {
+    return Long.compare(itemTime, aLong);
   }
 }
