@@ -20,7 +20,7 @@ public class AkarinItem extends AkarinValue implements Comparable<Long> {
 
   public AkarinItem(String itemType, Float itemPrice) {
     super(itemType, itemPrice);
-    this.itemTime = System.currentTimeMillis() / 1000L;
+    this.itemTime = System.currentTimeMillis();
   }
 
   public Long getItemTime() {
