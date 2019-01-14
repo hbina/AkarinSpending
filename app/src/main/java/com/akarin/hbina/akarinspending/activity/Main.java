@@ -68,7 +68,7 @@ public class Main extends AppCompatActivity implements OnChartValueSelectedListe
       String userId = user.getUid();
       setupFirebaseConnection(userId);
     } else {
-      onBackPressed();
+      goToLoginActivity();
     }
   }
 
