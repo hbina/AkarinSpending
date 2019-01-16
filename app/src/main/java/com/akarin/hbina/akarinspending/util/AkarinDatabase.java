@@ -48,11 +48,6 @@ public class AkarinDatabase {
         }
     }
 
-    public ArrayList<AkarinItem> getAllItem() {
-        pruneDatabase(System.currentTimeMillis());
-        return new ArrayList<>(hashOfStringToAkarinItem.values());
-    }
-
     private void pruneDatabase(Long currentTime) {
         for (String s : hashOfStringToAkarinItem.keySet()) {
             if (hashOfStringToAkarinItem.get(s).getItemTime() < (currentTime - UNIX_MONTH)) {
@@ -64,11 +59,12 @@ public class AkarinDatabase {
 
     private void addPriceToItemIndex(String itemType, Float price) {
         int indexOfItemType = hashOfStringToInteger.get(itemType);
-        Float itemTypePriceSum = price + arrayOfPieEntries.get(indexOfItemType).getValue();
+        float itemTypePriceSum = price + arrayOfPieEntries.get(indexOfItemType).getValue();
         arrayOfPieEntries.set(indexOfItemType, new PieEntry(itemTypePriceSum, itemType));
     }
 
     public ArrayList<PieEntry> getAllItemAsPieEntries() {
+        pruneDatabase(System.currentTimeMillis());
         return arrayOfPieEntries;
     }
 }
